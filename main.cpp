@@ -93,18 +93,20 @@ void displayMenu() {
 void displayAllVouchers(const vector<Voucher>& vouchers) {
     cout << "\n--- All Available Vouchers ---\n";
     for (size_t i = 0; i < vouchers.size(); ++i) {
-        cout << "[" << vouchers[i].id << "] " << vouchers[i].code << " | Category: " << vouchers[i].category 
-             << " | " << vouchers[i].description << " | Status: " << (vouchers[i].isClaimed ? "CLAIMED" : "AVAILABLE") << "\n";
-    }
+        if (vouchers[i].isClaimed) {
+            cout << "[" << vouchers[i].id << "] " << vouchers[i].code << " | Category: " << vouchers[i].category 
+             << " | " << vouchers[i].description << " | Status: CLAIMED\n";
+            }
+        }
 }
 
 void displayVouchersByCategory(const vector<Voucher>& vouchers, const string& category) {
     cout << "\n--- Category: " << category << " ---\n";
     bool found = false;
     for (size_t i = 0; i < vouchers.size(); ++i) {
-        if (vouchers[i].category == category) {
+        if (vouchers[i].category == category && vouchers[i].isClaimed) {
             cout << "[" << vouchers[i].id << "] " << vouchers[i].code << " | " << vouchers[i].description 
-                 << " | Status: " << (vouchers[i].isClaimed ? "CLAIMED" : "AVAILABLE") << "\n";
+                 << " | Status: CLAIMED\n";
             found = true;
         }
     }
