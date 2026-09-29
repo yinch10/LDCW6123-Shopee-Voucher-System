@@ -1,6 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <set>
+#include <iomanip>
 
 using namespace std;
 
@@ -21,6 +23,7 @@ void displayMenu();
 void displayAllVouchers(const vector<Voucher>& vouchers);
 void displayVouchersByCategory(const vector<Voucher>& vouchers, const string& category);
 void claimVoucher(vector<Voucher>& vouchers);
+void printVoucherRow(const Voucher& v);
 
 int main() {
     vector<Voucher> vouchers;
@@ -48,8 +51,20 @@ int main() {
                 displayAllVouchers(vouchers);
                 break;
             case 2: {
-                cout << "\nSelect Category Navigation:\n";
-                cout << "1. Free Shipping\n2. Food & Beverage\n3. Electronics\n4. Fashion\nChoice: ";
+                // Dynamic Category Extraction
+                set<string> categories;
+                for (const auto& v : vouchers) {
+                    categories.insert(v.category);
+                }
+
+                vector<string> catList(categories.begin(), categories.end());
+                cout << "\n--- Category Navigation ---\n";
+                for (size_t i = 0; i < catList.size(); ++i) {
+                    cout << i + 1 << ". " << catList[i] << "\n";
+                }
+                cout << "0. Back to Main Menu\n";
+                cout << "Choice: ";
+
                 int catChoice;
                 cin >> catChoice;
                 if (cin.fail()) {
@@ -58,11 +73,12 @@ int main() {
                     cout << "Invalid choice!\n";
                     break;
                 }
-                if (catChoice == 1) displayVouchersByCategory(vouchers, "Free Shipping");
-                else if (catChoice == 2) displayVouchersByCategory(vouchers, "Food & Beverage");
-                else if (catChoice == 3) displayVouchersByCategory(vouchers, "Electronics");
-                else if (catChoice == 4) displayVouchersByCategory(vouchers, "Fashion");
-                else cout << "Invalid category selection.\n";
+                if (catChoice == 0) break;
+                if (catChoice >= 1 && catChoice <= (int)catList.size()) {
+                    displayVouchersByCategory(vouchers, catList[catChoice - 1]);
+                } else {
+                    cout << "Invalid category selection.\n";
+                }
                 break;
             }
             case 3:
@@ -90,23 +106,35 @@ void displayMenu() {
     cout << "=========================================\n";
 }
 
+void printVoucherRow(const Voucher& v) {
+    string status = v.isClaimed ? "[CLAIMED]  " : "[AVAILABLE]";
+    cout << left << setw(4) << v.id
+         << setw(12) << v.code
+         << setw(18) << v.category
+         << setw(30) << v.description
+         << status << "\n";
+}
+
 void displayAllVouchers(const vector<Voucher>& vouchers) {
     cout << "\n--- All Available Vouchers ---\n";
-    for (size_t i = 0; i < vouchers.size(); ++i) {
-        if (vouchers[i].isClaimed) {
-            cout << "[" << vouchers[i].id << "] " << vouchers[i].code << " | Category: " << vouchers[i].category 
-             << " | " << vouchers[i].description << " | Status: CLAIMED\n";
-            }
-        }
+    cout << left << setw(4) << "ID" << setw(12) << "Code" << setw(18) << "Category" << setw(30) << "Description" << "Status" << "\n";
+    cout << string(70, '-') << "\n";
+    for (const auto& v : vouchers) {
+        printVoucherRow(v);
+    }
 }
 
 void displayVouchersByCategory(const vector<Voucher>& vouchers, const string& category) {
     cout << "\n--- Category: " << category << " ---\n";
+    cout << left << setw(4) << "ID" << setw(12) << "Code" << setw(30) << "Description" << "Status" << "\n";
+    cout << string(55, '-') << "\n";
     bool found = false;
-    for (size_t i = 0; i < vouchers.size(); ++i) {
-        if (vouchers[i].category == category && vouchers[i].isClaimed) {
-            cout << "[" << vouchers[i].id << "] " << vouchers[i].code << " | " << vouchers[i].description 
-                 << " | Status: CLAIMED\n";
+    for (const auto& v : vouchers) {
+        if (v.category == category) {
+            cout << left << setw(4) << v.id
+                 << setw(12) << v.code
+                 << setw(30) << v.description
+                 << (v.isClaimed ? "[CLAIMED]  " : "[AVAILABLE]") << "\n";
             found = true;
         }
     }
@@ -114,25 +142,24 @@ void displayVouchersByCategory(const vector<Voucher>& vouchers, const string& ca
 }
 
 void claimVoucher(vector<Voucher>& vouchers) {
-
     cout << "\n--- Available Vouchers to Claim ---\n";
+    cout << left << setw(4) << "ID" << setw(12) << "Code" << setw(18) << "Category" << setw(30) << "Description" << "\n";
+    cout << string(70, '-') << "\n";
     bool found = false;
 
-    for (size_t i = 0; i < vouchers.size(); ++i) {
-    if (!vouchers[i].isClaimed) {
-            cout << "[" << vouchers[i].id << "] "
-                << vouchers[i].code
-                << " | Category: " << vouchers[i].category
-                << " | " << vouchers[i].description
-                << "\n";
-
+    for (const auto& v : vouchers) {
+        if (!v.isClaimed) {
+            cout << left << setw(4) << v.id
+                 << setw(12) << v.code
+                 << setw(18) << v.category
+                 << setw(30) << v.description << "\n";
             found = true;
         }
     }
 
     if (!found) {
-    cout << "No available vouchers to claim.\n";
-    return;
+        cout << "No available vouchers to claim.\n";
+        return;
     }
 
     int id;
@@ -146,13 +173,13 @@ void claimVoucher(vector<Voucher>& vouchers) {
         return;
     }
 
-    for (size_t i = 0; i < vouchers.size(); ++i) {
-        if (vouchers[i].id == id) {
-            if (vouchers[i].isClaimed) {
+    for (auto& v : vouchers) {
+        if (v.id == id) {
+            if (v.isClaimed) {
                 cout << "Voucher has already been claimed!\n";
             } else {
-                vouchers[i].isClaimed = true;
-                cout << "Success! Claimed voucher: " << vouchers[i].code << "\n";
+                v.isClaimed = true;
+                cout << "Success! Claimed voucher: " << v.code << "\n";
             }
             return;
         }
