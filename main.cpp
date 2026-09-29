@@ -114,8 +114,29 @@ void displayVouchersByCategory(const vector<Voucher>& vouchers, const string& ca
 }
 
 void claimVoucher(vector<Voucher>& vouchers) {
+
+    cout << "\n--- Available Vouchers to Claim ---\n";
+    bool found = false;
+
+    for (size_t i = 0; i < vouchers.size(); ++i) {
+    if (!vouchers[i].isClaimed) {
+            cout << "[" << vouchers[i].id << "] "
+                << vouchers[i].code
+                << " | Category: " << vouchers[i].category
+                << " | " << vouchers[i].description
+                << "\n";
+
+            found = true;
+        }
+    }
+
+    if (!found) {
+    cout << "No available vouchers to claim.\n";
+    return;
+    }
+
     int id;
-    cout << "Enter Voucher ID to claim: ";
+    cout << "\nEnter Voucher ID to claim: ";
     cin >> id;
 
     if (cin.fail()) {
