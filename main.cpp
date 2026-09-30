@@ -138,14 +138,15 @@ int main() {
 }
 
 void displayMenu() {
-    cout << "=========================================================================================\n";
-    cout << "                         SHOPEE VOUCHER NAVIGATION SYSTEM                                \n";
-    cout << "=========================================================================================\n";
-    cout << "  1. View All Claimed Vouchers                                                           \n";
-    cout << "  2. Navigate / Filter Vouchers by Category & Spending                                   \n";
-    cout << "  3. Claim an Available Voucher                                                          \n";
-    cout << "  4. Exit System                                                                         \n";
-    cout << "=========================================================================================\n\n";
+    cout << "\n=========================================\n";
+    cout << "   SHOPEE VOUCHER NAVIGATION SYSTEM      \n";
+    cout << "=========================================\n";
+    cout << "1. View All Vouchers\n";
+    cout << "2. Navigate / Filter by Category\n";
+    cout << "3. Claim Voucher\n";
+    cout << "4. Use Voucher\n";
+    cout << "5. Exit\n";
+    cout << "=========================================\n";
 }
 
 void printTableHeader(bool includeCategory) {
