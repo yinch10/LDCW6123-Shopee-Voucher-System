@@ -3,6 +3,7 @@
 #include <string>
 #include <set>
 #include <iomanip>
+#include <cstdlib>
 
 using namespace std;
 
@@ -13,55 +14,63 @@ struct Voucher {
     string category;
     string description;
     double minSpend;
-    int status; // 0: Unclaimed, 1: Available (Claimed), 2: Used
+    bool isClaimed;
+    bool isUsed;
 
-    Voucher(int i, string c, string cat, string desc, double spend, int stat)
-        : id(i), code(c), category(cat), description(desc), minSpend(spend), status(stat) {}
+    Voucher(int i, string c, string cat, string desc, double spend, bool claimed)
+        : id(i), code(c), category(cat), description(desc), minSpend(spend), isClaimed(claimed), isUsed(false) {}
 };
+
+// Helper function to clear terminal screen across OS platforms
+void clearScreen() {
+#ifdef _WIN32
+    system("cls");
+#else
+    system("clear");
+#endif
+}
 
 // Function prototypes
 void displayMenu();
 void displayAllVouchers(const vector<Voucher>& vouchers);
-void displayVouchersByCategory(const vector<Voucher>& vouchers,const string& category,double spendingAmount);
+void displayVouchersByCategory(const vector<Voucher>& vouchers, const string& category, double spendingAmount);
 void claimVoucher(vector<Voucher>& vouchers);
 void useVoucher(vector<Voucher>& vouchers);
-void printVoucherRow(const Voucher& v);
+void printTableHeader(bool includeCategory = true);
+void printVoucherRow(const Voucher& v, bool includeCategory = true);
+void pauseConsole();
 
 int main() {
     vector<Voucher> vouchers;
-    vouchers.push_back(Voucher(1, "FS-100", "Free Shipping",
-        "Free Shipping Min Spend RM15", 15, 0));
-
-    vouchers.push_back(Voucher(2, "FOOD-20", "Food & Beverage",
-        "20% OFF Food Delivery", 0, 0));
-
-    vouchers.push_back(Voucher(3, "ELEC-50", "Electronics",
-        "RM50 OFF Minimum Spend RM500", 500, 0));
-
-    vouchers.push_back(Voucher(4, "FASH-15", "Fashion",
-        "15% OFF Apparel", 0, 0));
-
-    vouchers.push_back(Voucher(5, "FS-200", "Free Shipping",
-        "Free Shipping Min Spend RM0", 0, 0));
+    vouchers.push_back(Voucher(1, "FS-100",  "Free Shipping",   "Free Shipping Min Spend RM15", 15.00, false));
+    vouchers.push_back(Voucher(2, "FOOD-20", "Food & Beverage", "20% OFF Food Delivery",        0.00,  false));
+    vouchers.push_back(Voucher(3, "ELEC-50", "Electronics",     "RM50 OFF Minimum Spend RM500", 500.00,false));
+    vouchers.push_back(Voucher(4, "FASH-15", "Fashion",         "15% OFF Apparel",               0.00,  false));
+    vouchers.push_back(Voucher(5, "FS-200",  "Free Shipping",   "Free Shipping Min Spend RM0",  0.00,  false));
 
     int choice = 0;
     do {
+        clearScreen();
         displayMenu();
-        cout << "Enter choice (1-5): ";
+        cout << "  Enter choice (1-4): ";
         cin >> choice;
 
         if (cin.fail()) {
             cin.clear();
             cin.ignore(10000, '\n');
-            cout << "Invalid selection! Please enter a number between 1 and 5.\n";
+            cout << "\n  [!] Invalid selection! Please enter a number between 1 and 4.\n";
+            pauseConsole();
             continue;
         }
 
         switch (choice) {
             case 1:
+                clearScreen();
                 displayAllVouchers(vouchers);
+                pauseConsole();
                 break;
             case 2: {
+                clearScreen();
                 // Dynamic Category Extraction
                 set<string> categories;
                 for (const auto& v : vouchers) {
@@ -69,56 +78,66 @@ int main() {
                 }
 
                 vector<string> catList(categories.begin(), categories.end());
-                cout << "\n--- Category Navigation ---\n";
+                cout << "=========================================================================================\n";
+                cout << "                               CATEGORY NAVIGATION MENU                                  \n";
+                cout << "=========================================================================================\n\n";
                 for (size_t i = 0; i < catList.size(); ++i) {
-                    cout << i + 1 << ". " << catList[i] << "\n";
+                    cout << "  [" << i + 1 << "] " << catList[i] << "\n";
                 }
-                cout << "0. Back to Main Menu\n";
-                cout << "Choice: ";
+                cout << "  [0] Back to Main Menu\n\n";
+                cout << "  Select Category: ";
 
                 int catChoice;
                 cin >> catChoice;
                 if (cin.fail()) {
                     cin.clear();
                     cin.ignore(10000, '\n');
-                    cout << "Invalid choice!\n";
+                    cout << "\n  [!] Invalid choice!\n";
+                    pauseConsole();
                     break;
                 }
                 if (catChoice == 0) break;
+
                 if (catChoice >= 1 && catChoice <= (int)catList.size()) {
                     double spendingAmount;
-
-                    cout << "Enter your spending amount (RM): ";
+                    cout << "  Enter your planned spending amount (RM): ";
                     cin >> spendingAmount;
 
                     if (cin.fail() || spendingAmount < 0) {
                         cin.clear();
                         cin.ignore(10000, '\n');
-                        cout << "Invalid spending amount.\n";
+                        cout << "\n  [!] Invalid spending amount.\n";
+                        pauseConsole();
                         break;
                     }
 
-                    displayVouchersByCategory(
-                        vouchers,
-                        catList[catChoice - 1],
-                        spendingAmount
-                    );
+                    clearScreen();
+                    displayVouchersByCategory(vouchers, catList[catChoice - 1], spendingAmount);
                 } else {
-                    cout << "Invalid category selection.\n";
+                    cout << "\n  [!] Invalid category selection.\n";
                 }
+                pauseConsole();
                 break;
             }
             case 3:
+                clearScreen();
                 claimVoucher(vouchers);
+                pauseConsole();
                 break;
             case 4:
+                clearScreen();
                 useVoucher(vouchers);
+                pauseConsole();
                 break;
             case 5:
-                cout << "Exiting Shopee Voucher System. Thank you!\n";
+                clearScreen();
+                cout << "=========================================================================================\n";
+                cout << "                Thank you for using Shopee Voucher Navigation System!                    \n";
+                cout << "=========================================================================================\n\n";
                 break;
             default:
-                cout << "Invalid menu selection. Try again.\n";
+                cout << "\n  [!] Invalid menu selection. Try again.\n";
+                pauseConsole();
         }
     } while (choice != 5);
 
@@ -137,201 +156,208 @@ void displayMenu() {
     cout << "=========================================\n";
 }
 
-void printVoucherRow(const Voucher& v) {
-    string status;
-    if (v.status == 1) status = "[AVAILABLE]";
-    else if (v.status == 2) status = "[USED/CLAIMED]";
-    else status = "[UNCLAIMED]";
+void printTableHeader(bool includeCategory) {
+    if (includeCategory) {
+        cout << left << setw(6)  << "ID"
+             << setw(12) << "CODE"
+             << setw(20) << "CATEGORY"
+             << setw(14) << "MIN SPEND"
+             << setw(32) << "DESCRIPTION"
+             << setw(12) << "STATUS" << "\n";
+    } else {
+        cout << left << setw(6)  << "ID"
+             << setw(12) << "CODE"
+             << setw(14) << "MIN SPEND"
+             << setw(36) << "DESCRIPTION"
+             << setw(12) << "STATUS" << "\n";
+    }
+    cout << "-----------------------------------------------------------------------------------------\n";
+}
 
-    cout << left << setw(4) << v.id
-         << setw(12) << v.code
-         << setw(18) << v.category
-         << setw(30) << v.description
-         << status << "\n";
+void printVoucherRow(const Voucher& v, bool includeCategory) {
+    string status;
+    if (v.isUsed) status = "[USED]";
+    else if (v.isClaimed) status = "[CLAIMED]";
+    else status = "[AVAILABLE]";
+
+    if (includeCategory) {
+        cout << left << setw(6)  << v.id
+             << setw(12) << v.code
+             << setw(20) << v.category
+             << "RM " << fixed << setprecision(2) << setw(11) << v.minSpend
+             << setw(32) << v.description
+             << setw(12) << status << "\n";
+    } else {
+        cout << left << setw(6)  << v.id
+             << setw(12) << v.code
+             << "RM " << fixed << setprecision(2) << setw(11) << v.minSpend
+             << setw(36) << v.description
+             << setw(12) << status << "\n";
+    }
 }
 
 void displayAllVouchers(const vector<Voucher>& vouchers) {
-    cout << "\n--- Your Voucher Wallet ---\n";
-    cout << left << setw(4) << "ID"
-         << setw(12) << "Code"
-         << setw(18) << "Category"
-         << setw(30) << "Description"
-         << "Status\n";
-    cout << string(70, '-') << "\n";
+    cout << "=========================================================================================\n";
+    cout << "                                  ALL CLAIMED VOUCHERS                                   \n";
+    cout << "=========================================================================================\n";
+    printTableHeader(true);
 
     bool found = false;
-
     for (const auto& v : vouchers) {
-        if (v.status == 1 || v.status == 2) {
-            printVoucherRow(v);
+        if (v.isClaimed) {
+            printVoucherRow(v, true);
             found = true;
         }
     }
 
     if (!found) {
-        cout << "Your wallet is empty. Please claim some vouchers!\n";
+        cout << "  No claimed vouchers found in your inventory.\n";
     }
+    cout << "-----------------------------------------------------------------------------------------\n";
 }
 
-
-void displayVouchersByCategory(
-    const vector<Voucher>& vouchers,
-    const string& category,
-    double spendingAmount
-) {
-    cout << "\n--- Matching Vouchers: " << category << " ---\n";
-    cout << "Your Spending: RM"
-         << fixed << setprecision(2)
-         << spendingAmount << "\n";
-
-    cout << left
-         << setw(4) << "ID"
-         << setw(12) << "Code"
-         << setw(30) << "Description"
-         << "Minimum Spend\n";
-
-    cout << string(65, '-') << "\n";
+void displayVouchersByCategory(const vector<Voucher>& vouchers, const string& category, double spendingAmount) {
+    cout << "=========================================================================================\n";
+    cout << "  CATEGORY: " << category << " | YOUR SPENDING: RM " << fixed << setprecision(2) << spendingAmount << "\n";
+    cout << "=========================================================================================\n";
+    printTableHeader(false);
 
     bool found = false;
-
     for (const auto& v : vouchers) {
-
-        if (v.category == category &&
-            v.status == 1 &&
-            spendingAmount >= v.minSpend) {
-
-            cout << left
-                 << setw(4) << v.id
-                 << setw(12) << v.code
-                 << setw(30) << v.description
-                 << "RM" << fixed << setprecision(2)
-                 << v.minSpend << "\n";
-
+        if (v.category == category && v.isClaimed && spendingAmount >= v.minSpend) {
+            printVoucherRow(v, false);
             found = true;
         }
     }
 
     if (!found) {
-        cout << "No matching available vouchers found.\n";
+        cout << "  No matching claimed vouchers found for this category and spending limit.\n";
     }
+    cout << "-----------------------------------------------------------------------------------------\n";
 }
 
 void claimVoucher(vector<Voucher>& vouchers) {
-    cout << "\n--- Claim Voucher ---\n";
-
-    cout << left
-         << setw(4) << "ID"
-         << setw(12) << "Code"
-         << setw(18) << "Category"
-         << setw(30) << "Description"
-         << "Status\n";
-
-    cout << string(75, '-') << "\n";
+    cout << "=========================================================================================\n";
+    cout << "                                 CLAIM AVAILABLE VOUCHERS                                \n";
+    cout << "=========================================================================================\n";
+    printTableHeader(true);
 
     bool found = false;
-
-    // Display only vouchers that have NOT been claimed
     for (const auto& v : vouchers) {
-        if (v.status == 0) {
-            printVoucherRow(v);
+        if (!v.isClaimed) {
+            printVoucherRow(v, true);
             found = true;
         }
     }
 
     if (!found) {
-        cout << "No available vouchers to claim.\n";
+        cout << "  No available vouchers remaining to claim.\n";
+        cout << "-----------------------------------------------------------------------------------------\n";
         return;
     }
 
+    cout << "-----------------------------------------------------------------------------------------\n";
     int id;
-    cout << "\nEnter voucher ID to claim (0 to cancel): ";
+    cout << "\n  Enter Voucher ID to claim (0 to cancel): ";
     cin >> id;
 
     if (cin.fail()) {
         cin.clear();
         cin.ignore(10000, '\n');
-        cout << "Invalid ID.\n";
+        cout << "\n  [!] Invalid input ID.\n";
         return;
     }
 
     if (id == 0) {
-        cout << "Claim cancelled.\n";
+        cout << "\n  Claim request cancelled.\n";
         return;
     }
 
     for (auto& v : vouchers) {
         if (v.id == id) {
-
-            if (v.status != 0) {
-                cout << "This voucher has already been claimed.\n";
+            if (v.isClaimed) {
+                cout << "\n  [!] Notice: This voucher has already been claimed!\n";
             } else {
-                v.status = 1;
-                cout << "Voucher " << v.code << " claimed successfully!\n";
+                v.isClaimed = true;
+                cout << "\n  [SUCCESS] Voucher " << v.code << " claimed successfully!\n";
             }
-
             return;
         }
     }
 
-    cout << "Voucher ID not found.\n";
+    cout << "\n  [!] Error: Voucher ID not found.\n";
 }
 
+void pauseConsole() {
+    cout << "\n  Press ENTER to continue...";
+    cin.ignore(10000, '\n');
+    cin.get();
+}
 void useVoucher(vector<Voucher>& vouchers) {
-    cout << "\n--- Use Voucher ---\n";
-
-    cout << left
-         << setw(4) << "ID"
-         << setw(12) << "Code"
-         << setw(18) << "Category"
-         << setw(30) << "Description"
-         << "Status\n";
-
-    cout << string(75, '-') << "\n";
+    cout << "=========================================================================================\n";
+    cout << "                                 USE CLAIMED VOUCHERS                                   \n";
+    cout << "=========================================================================================\n";
+    printTableHeader(true);
 
     bool found = false;
-
-    // Display only vouchers that are claimed but not yet used
     for (const auto& v : vouchers) {
-        if (v.status == 1) {
-            printVoucherRow(v);
+        if (v.isClaimed && !v.isUsed) {
+            printVoucherRow(v, true);
             found = true;
         }
     }
 
     if (!found) {
-        cout << "No available vouchers to use. Please claim some first!\n";
+        cout << "  No claimed and available vouchers found in your inventory.\n";
+        cout << "-----------------------------------------------------------------------------------------\n";
         return;
     }
 
+    cout << "-----------------------------------------------------------------------------------------\n";
     int id;
-    cout << "\nEnter voucher ID to use (0 to cancel): ";
+    cout << "\n  Enter Voucher ID to use (0 to cancel): ";
     cin >> id;
 
     if (cin.fail()) {
         cin.clear();
         cin.ignore(10000, '\n');
-        cout << "Invalid ID.\n";
+        cout << "\n  [!] Invalid input ID.\n";
         return;
     }
 
     if (id == 0) {
-        cout << "Use cancelled.\n";
+        cout << "\n  Operation cancelled.\n";
         return;
     }
 
     for (auto& v : vouchers) {
         if (v.id == id) {
-
-            if (v.status != 1) {
-                cout << "This voucher is not available for use (it may have already been used).\n";
+            if (!v.isClaimed) {
+                cout << "\n  [!] Error: This voucher has not been claimed yet!\n";
+            } else if (v.isUsed) {
+                cout << "\n  [!] Error: This voucher has already been used!\n";
             } else {
-                v.status = 2;
-                cout << "Voucher " << v.code << " used successfully!\n";
-            }
+                double spendingAmount;
+                cout << "  Enter your current order total (RM): ";
+                cin >> spendingAmount;
 
+                if (cin.fail() || spendingAmount < 0) {
+                    cin.clear();
+                    cin.ignore(10000, '\n');
+                    cout << "\n  [!] Invalid order total.\n";
+                    return;
+                }
+
+                if (spendingAmount >= v.minSpend) {
+                    v.isUsed = true;
+                    cout << "\n  [SUCCESS] Voucher " << v.code << " applied successfully to your order!\n";
+                } else {
+                    cout << "\n  [!] Error: Minimum spend of RM " << fixed << setprecision(2) << v.minSpend << " not met!\n";
+                }
+            }
             return;
         }
     }
 
-    cout << "Voucher ID not found.\n";
+    cout << "\n  [!] Error: Voucher ID not found.\n";
 }
