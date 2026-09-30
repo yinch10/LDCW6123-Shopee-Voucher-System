@@ -122,14 +122,14 @@ int main() {
 }
 
 void displayMenu() {
-    cout << "\n=========================================\n";
+    cout << "\n\n\n\n\n\n=========================================\n";
     cout << "   SHOPEE VOUCHER NAVIGATION SYSTEM      \n";
     cout << "=========================================\n";
     cout << "1. View All Vouchers\n";
     cout << "2. Navigate / Filter by Category\n";
     cout << "3. Claim Voucher\n";
     cout << "4. Exit\n";
-    cout << "=========================================\n";
+    cout << "=========================================\n\n\n\n\n\n";
 }
 
 void printVoucherRow(const Voucher& v) {
@@ -142,7 +142,7 @@ void printVoucherRow(const Voucher& v) {
 }
 
 void displayAllVouchers(const vector<Voucher>& vouchers) {
-    cout << "\n--- All Claimed Vouchers ---\n";
+    cout << "\n\n\n\n\n\n--- All Claimed Vouchers ---\n\n";
     cout << left << setw(4) << "ID"
          << setw(12) << "Code"
          << setw(18) << "Category"
